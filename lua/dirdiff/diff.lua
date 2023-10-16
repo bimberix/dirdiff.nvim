@@ -26,7 +26,7 @@ end
 local function is_equal_file(mine_file, other_file)
 	local mine_len = vim.fn.getfsize(mine_file)
 	-- 只判断文件类型
-	if mine_len <= 0 then
+	if mine_len < 0 then
 		return false
 	end
 	if mine_len ~= vim.fn.getfsize(other_file) then
