@@ -88,13 +88,13 @@ function M:add_lines(dst, src, sign)
         local p = self:get_path(line)
         local prefix = ""
         if p.mine_ft == "file" and p.other_ft == "file" then
-            prefix = "f"
+            prefix = " "
         elseif p.mine_ft == "dir" and p.other_ft == "dir" then
-            prefix = "d"
+            prefix = "▸"
         else
             prefix = "x"
         end
-        table.insert(dst, prefix .. sign .. " " .. line)
+        table.insert(dst, prefix .. " " .. line .. " " .. sign)
     end
 end
 
