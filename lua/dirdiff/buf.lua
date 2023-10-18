@@ -25,13 +25,13 @@ function M:get_fname()
         diff = self.diff_info.sub[self.showed_diff]
     end
     local cur_line = self.select_offset - 1
-    if cur_line <= #diff.change then
-        return diff.change[cur_line]
+    if cur_line <= #diff.dirs then
+        return diff.dirs[cur_line].file
     end
-    if cur_line <= #diff.change + #diff.add then
-        return diff.add[cur_line - #diff.change]
-    end
-    return diff.delete[cur_line - #diff.change - #diff.add]
+    --if cur_line <= #diff.change + #diff.add then
+        --return diff.add[cur_line - #diff.change]
+    --end
+    return diff.files[cur_line - #diff.dirs].file
 end
 
 function M:diff_cur_line()
@@ -77,15 +77,16 @@ function M:set_navi_buf()
     if self.showed_diff ~= "" then
         diff = self.diff_info.sub[self.showed_diff]
     end
-    self:add_lines(buf_lines, diff.change, "~")
-    self:add_lines(buf_lines, diff.add, "+")
-    self:add_lines(buf_lines, diff.delete, "-")
+    self:add_lines(buf_lines, diff.dirs)
+    self:add_lines(buf_lines, diff.files)
+    --self:add_lines(buf_lines, diff.add, "+")
+    --self:add_lines(buf_lines, diff.delete, "-")
     api.nvim_buf_set_lines(self.navi_buf_id, 0, -1, false, buf_lines)
 end
 
-function M:add_lines(dst, src, sign)
+function M:add_lines(dst, src)
     for _, line in ipairs(src) do
-        local p = self:get_path(line)
+        local p = self:get_path(line.file)
         local prefix = ""
         if p.mine_ft == "file" and p.other_ft == "file" then
             prefix = " "
@@ -94,7 +95,7 @@ function M:add_lines(dst, src, sign)
         else
             prefix = "x"
         end
-        table.insert(dst, prefix .. " " .. line .. " " .. sign)
+        table.insert(dst, prefix .. " " .. line.file .. line.state)
     end
 end
 

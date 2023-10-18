@@ -80,32 +80,47 @@ local M = {}
 M.diff_dir = function(mine, others, is_rec)
     local mine_files = get_files(mine, is_rec)
     local other_files = get_files(others, is_rec)
-    local diff_add = {}
-    local diff_change = {}
-    local diff_delete = {}
+    local diff_files = {}
+    local diff_dirs = {}
+    --local diff_add = {}
+    --local diff_change = {}
+    --local diff_delete = {}
     for file, ft in pairs(mine_files) do
         local other_ft = other_files[file]
         if not other_ft then
-            table.insert(diff_add, file)
+            if ft == "dir" then
+                table.insert(diff_dirs, {file = file, state = "+"})
+            else
+                table.insert(diff_files, {file = file, state = "+"})
+            end
         elseif ft ~= other_ft then
-            table.insert(diff_change, file)
+            table.insert(diff_files, {file = file, state = "~"})
         elseif ft == "dir" then
             if not is_equal_dir(plat.path_concat(mine, file), plat.path_concat(others, file)) then
-                table.insert(diff_change, file)
+                table.insert(diff_dirs, {file = file, state = "~"})
             end
         elseif not is_equal_file(plat.path_concat(mine, file), plat.path_concat(others, file)) then
-            table.insert(diff_change, file)
+            table.insert(diff_files, {file = file, state = "~"})
         end
     end
-    for file, _ in pairs(other_files) do
+    for file, ft in pairs(other_files) do
         if not mine_files[file] then
-            table.insert(diff_delete, file)
+            if ft == "dir" then
+                table.insert(diff_dirs, {file = file, state = "-"})
+            else
+                table.insert(diff_files, {file = file, state = "-"})
+            end
         end
     end
-    table.sort(diff_add)
-    table.sort(diff_change)
-    table.sort(diff_delete)
-    return {mine_root = mine, others_root = others, diff = {add = diff_add, change = diff_change, delete = diff_delete}}
+
+    local entry_compare = function(a, b)
+        return string.lower(a.file) < string.lower(b.file)
+    end
+    table.sort(diff_dirs, entry_compare)
+    table.sort(diff_files, entry_compare)
+    --table.sort(diff_delete)
+    --return {mine_root = mine, others_root = others, diff = {add = diff_add, change = diff_change, delete = diff_delete}}
+    return {mine_root = mine, others_root = others, diff = {files = diff_files, dirs = diff_dirs}}
 end
 
 return M
